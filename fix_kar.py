@@ -27,13 +27,13 @@ def fix_libs():
 					continue
 	return result
 
-def fix_manifest():
+def fix_manifest(fl):
 	header = []
-	classpath = ["Bundle-ClassPath: .," + "\n"]
+	classpath = ["Bundle-ClassPath: ."]
 	tail = []
 	i = 0
 
-	with open("MANIFEST.MF", "r+") as mf:
+	with open(fl, "r+") as mf:
 		lines = mf.readlines()
 
 		for l in lines: #collecting header
@@ -54,16 +54,17 @@ def fix_manifest():
 
 	for root, dirs, filenames in os.walk("lib"):
 		for f in filenames:
-			classpath.append(" " + "lib" + "/" + f + "\n")
+			classpath.append(",\n " + "lib/" + f)
 
-	with open("MANIFEST.MF", "w") as mf:
+	with open(fl, "w") as mf:
 		mf.writelines(header)
 		mf.writelines(classpath)
+		mf.write("\n")
 		mf.writelines(tail)
 
-def pack_jar(fl):
+def pack_jar(fl, manifest):
 	fldr="."
-	pl = subprocess.Popen([jar, "cvfm", fl, "MANIFEST.MF", "-C", fldr, "."], stdout=subprocess.PIPE)
+	pl = subprocess.Popen([jar, "cvfm", fl, manifest, "-C", fldr, "."], stdout=subprocess.PIPE)
 	pl.communicate()
 
 def unpack_file(fl):
@@ -80,10 +81,14 @@ def fix_jar(folder, fl):
 		
 		if fix_libs():
 			os.remove(fl)
-			shutil.copy("META-INF/MANIFEST.MF", folder)
-			os.remove("META-INF/MANIFEST.MF")
-			fix_manifest()
-			pack_jar(fl)
+			tmpdir2 = tempfile.mkdtemp()
+			shutil.copy("META-INF/MANIFEST.MF", tmpdir2)
+			#os.remove("META-INF/MANIFEST.MF")
+			shutil.rmtree("META-INF")
+			tmpmf = tmpdir2+"/MANIFEST.MF"
+			fix_manifest(tmpmf)
+			pack_jar(fl, tmpmf)
+			shutil.rmtree(tmpdir2)
 
 		for root, dirs, filenames in os.walk("."):
 			for d in dirs:
