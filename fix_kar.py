@@ -2,15 +2,25 @@
 
 import subprocess, tempfile, shutil, sys, os, os.path
 
+########################################
+###   SETTINGS
+########################################
 unzip = "C:/Program Files/7-Zip/7z"
 unzipcmd = "x"
 jar = "c:/Program Files/Java/jdk1.6.0_45/bin/jar"
 copy = "copy"
 zipper = "C:/Program Files/7-Zip/7z"
+zipcmd1 = "a"
+zipcmd2 = "-tzip"
 
 unwanted_libs = ["activation", "asm-", "geronimo-jaxws", "javax.ws.rs-api-",
 "jaxb-impl-", "jaxb-xjc-", "jaxp-api", "jaxp-ri", "mail", "serializer-", "stax2-api-",
 "velocity-", "woodstox-core-", "xalan-"]
+
+########################################
+###   END  SETTINGS
+########################################
+
 
 tmpdir = tempfile.mkdtemp()
 karfile = sys.argv[1]
@@ -121,7 +131,7 @@ try:
 	        if f.endswith(".jar") and f.count("-bundle-") == 0:
 	        	fix_jar(root, f)
 
-	pl = subprocess.Popen([zipper, "a", "-tzip", karfile+".tmp", tmpdir+"/repository"], stdout=subprocess.PIPE)
+	pl = subprocess.Popen([zipper, zipcmd1, zipcmd2, karfile+".tmp", tmpdir+"/repository"], stdout=subprocess.PIPE)
 	pl.communicate()
 	os.remove(karfile)
 	os.rename(karfile+".tmp", karfile)
